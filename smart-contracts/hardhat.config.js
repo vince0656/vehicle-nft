@@ -1,20 +1,18 @@
 require('dotenv').config();
-usePlugin('@nomiclabs/buidler-waffle');
-usePlugin('@nomiclabs/buidler-truffle5');
-usePlugin('buidler-gas-reporter');
-usePlugin('solidity-coverage');
-usePlugin('@nomiclabs/buidler-solhint');
-usePlugin('buidler-contract-sizer');
+require("@nomiclabs/hardhat-waffle");
+require('solidity-coverage');
 
 const INFURA_PROJECT_ID = process.env.INFURA_PROJECT_ID;
 const PRIVATE_KEY = process.env.PRIVATE_KEY;
 
 module.exports = {
-  solc: {
-    version: '0.6.12',
-    optimizer: {
-      enabled: true,
-      runs: 200
+  solidity: {
+    version: "0.6.12",
+    settings: {
+      optimizer: {
+        enabled: true,
+        runs: 200
+      }
     }
   },
   gasReporter: {
