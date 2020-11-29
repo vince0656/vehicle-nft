@@ -28,19 +28,13 @@ contract Vehicle is ERC721, IERC998ERC721TopDown, IERC998ERC721TopDownEnumerable
 
     constructor(string memory _manufacturer, string memory _symbol) ERC721(_manufacturer, _symbol) {}
 
-    function addressToBytes32(address _account) public pure returns (bytes32 result) {
-        assembly {
-            result := mload(add(_account, 32))
-        }
-    }
-
     //todo mint needs to take VIN and token uri
 
-    function rootOwnerOf(uint256 _tokenId) external override view returns (bytes32 rootOwner) {
+    function rootOwnerOf(uint256 _tokenId) external override view returns (address rootOwner) {
         return rootOwnerOfChild(address(0), _tokenId);
     }
 
-    function rootOwnerOfChild(address _childContract, uint256 _childTokenId) public override view returns (bytes32 rootOwner) {
+    function rootOwnerOfChild(address _childContract, uint256 _childTokenId) public override view returns (address rootOwner) {
         address rootOwnerAddress;
 
         // When zero passed in, the query is about who owns the Vehicle token ID specified by [_childTokenId] param
@@ -54,11 +48,11 @@ contract Vehicle is ERC721, IERC998ERC721TopDown, IERC998ERC721TopDownEnumerable
         // todo, check that the child is linked to a parent
 
         // Ownership of a child is implicit from the ownership of a vehicle (NFT)
-        return ERC998_MAGIC_VALUE << 224 | addressToBytes32(rootOwnerAddress);
+        return rootOwnerAddress;
     }
 
-    function ownerOfChild(address _childContract, uint256 _childTokenId) external override view returns (bytes32 parentTokenOwner, uint256 parentTokenId) {
-        return (0x0, 0);
+    function ownerOfChild(address _childContract, uint256 _childTokenId) external override view returns (address parentTokenOwner, uint256 parentTokenId) {
+        return _ownerOfChild(_childContract, _childTokenId);
     }
 
     function onERC721Received(address _operator, address _from, uint256 _childTokenId, bytes calldata _data) external override returns (bytes4) {
@@ -102,6 +96,16 @@ contract Vehicle is ERC721, IERC998ERC721TopDown, IERC998ERC721TopDownEnumerable
 
     function childTokenByIndex(uint256 _tokenId, address _childContract, uint256 _index) external override view returns (uint256 childTokenId) {
         return 0;
+    }
+
+    // ----------
+    // Internal
+    // ----------
+
+    function addressToBytes32(address _account) private pure returns (bytes32 result) {
+        assembly {
+            result := mload(add(_account, 32))
+        }
     }
 
     function _ownerOfChild(address _childContract, uint256 _childTokenId) internal view returns (address parentTokenOwner, uint256 parentTokenId) {

@@ -6,9 +6,9 @@ interface IERC998ERC721TopDown {
     event ReceivedChild(address indexed _from, uint256 indexed _tokenId, address indexed _childContract, uint256 _childTokenId);
     event TransferChild(uint256 indexed tokenId, address indexed _to, address indexed _childContract, uint256 _childTokenId);
 
-    function rootOwnerOf(uint256 _tokenId) external view returns (bytes32 rootOwner);
-    function rootOwnerOfChild(address _childContract, uint256 _childTokenId) external view returns (bytes32 rootOwner);
-    function ownerOfChild(address _childContract, uint256 _childTokenId) external view returns (bytes32 parentTokenOwner, uint256 parentTokenId);
+    function rootOwnerOf(uint256 _tokenId) external view returns (address rootOwner);
+    function rootOwnerOfChild(address _childContract, uint256 _childTokenId) external view returns (address rootOwner);
+    function ownerOfChild(address _childContract, uint256 _childTokenId) external view returns (address parentTokenOwner, uint256 parentTokenId);
     function onERC721Received(address _operator, address _from, uint256 _childTokenId, bytes calldata _data) external returns (bytes4);
     function transferChild(uint256 _fromTokenId, address _to, address _childContract, uint256 _childTokenId) external;
     function safeTransferChild(uint256 _fromTokenId, address _to, address _childContract, uint256 _childTokenId) external;
