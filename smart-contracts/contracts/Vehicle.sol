@@ -16,6 +16,10 @@ contract Vehicle is ERC721, IERC998ERC721TopDown, IERC998ERC721TopDownEnumerable
     //TODO: this was bytes32.
     bytes4 constant ERC998_MAGIC_VALUE = 0xcd740db5;
 
+    // Equals to `bytes4(keccak256("onERC721Received(address,address,uint256,bytes)"))`
+    // which can be also obtained as `IERC721Receiver(0).onERC721Received.selector`
+    bytes4 private constant _ERC721_RECEIVED = 0x150b7a02;
+
     // Set of whitelisted child contracts
     EnumerableSet.AddressSet internal childContracts;
 
@@ -55,8 +59,22 @@ contract Vehicle is ERC721, IERC998ERC721TopDown, IERC998ERC721TopDownEnumerable
         return _ownerOfChild(_childContract, _childTokenId);
     }
 
-    function onERC721Received(address _operator, address _from, uint256 _childTokenId, bytes calldata _data) external override returns (bytes4) {
-        return 0x0;
+    function onERC721Received(address, address _from, uint256 _childTokenId, bytes calldata _data) external override returns (bytes4) {
+        require(childContracts.contains(msg.sender), "Child contract is not whitelisted");
+        require(_data.length > 0, "_data must contain the uint256 tokenId to transfer the child token to.");
+
+        // convert up to 32 bytes of_data to uint256, owner nft tokenId passed as uint in bytes
+        uint256 tokenId;
+        assembly {tokenId := calldataload(132)}
+
+        if (_data.length < 32) {
+            tokenId = tokenId >> 256 - _data.length * 8;
+        }
+
+        receiveChild(_from, tokenId, msg.sender, _childTokenId);
+        require(ERC721(msg.sender).ownerOf(_childTokenId) == address(this), "Child token not owned.");
+
+        return _ERC721_RECEIVED;
     }
 
     function transferChild(uint256 _fromTokenId, address _to, address _childContract, uint256 _childTokenId) external override {
@@ -99,8 +117,21 @@ contract Vehicle is ERC721, IERC998ERC721TopDown, IERC998ERC721TopDownEnumerable
     }
 
     // ----------
-    // Internal
+    // Private
     // ----------
+
+    function receiveChild(address _from, uint256 _tokenId, address _childContract, uint256 _childTokenId) private {
+        require(ownerOf(_tokenId) != address(0));
+        require(
+            !parentTokenIDToChildrenOwned[_tokenId][_childContract].contains(_childTokenId),
+            "Cannot receive child token because it has already been received."
+        );
+
+        parentTokenIDToChildrenOwned[_tokenId][_childContract].add(_childTokenId);
+        childTokenToParentTokenId[_childContract][_childTokenId] = _tokenId;
+
+        emit ReceivedChild(_from, _tokenId, _childContract, _childTokenId);
+    }
 
     function addressToBytes32(address _account) private pure returns (bytes32 result) {
         assembly {
