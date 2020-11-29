@@ -9,6 +9,7 @@ import "./ERC998/IERC998ERC721TopDownEnumerable.sol";
 
 contract Vehicle is ERC721, IERC998ERC721TopDown, IERC998ERC721TopDownEnumerable {
     using EnumerableSet for EnumerableSet.UintSet;
+    using EnumerableSet for EnumerableSet.AddressSet;
 
     // return this.rootOwnerOf.selector ^ this.rootOwnerOfChild.selector ^
     //   this.tokenOwnerOf.selector ^ this.ownerOfChild.selector;
@@ -29,6 +30,7 @@ contract Vehicle is ERC721, IERC998ERC721TopDown, IERC998ERC721TopDownEnumerable
     constructor(string memory _manufacturer, string memory _symbol) ERC721(_manufacturer, _symbol) {}
 
     //todo mint needs to take VIN and token uri
+    //todo whitelist child contract using access controls contract
 
     function rootOwnerOf(uint256 _tokenId) external override view returns (address rootOwner) {
         return rootOwnerOfChild(address(0), _tokenId);
@@ -42,10 +44,8 @@ contract Vehicle is ERC721, IERC998ERC721TopDown, IERC998ERC721TopDownEnumerable
             rootOwnerAddress = ownerOf(_childTokenId);
         }
 
+        require(childContracts.contains(_childContract), "Invalid child contract address");
         (rootOwnerAddress,) = _ownerOfChild(_childContract, _childTokenId);
-
-        // todo, check that the child is whitelisted - need an access controls contract
-        // todo, check that the child is linked to a parent
 
         // Ownership of a child is implicit from the ownership of a vehicle (NFT)
         return rootOwnerAddress;
@@ -82,20 +82,20 @@ contract Vehicle is ERC721, IERC998ERC721TopDown, IERC998ERC721TopDownEnumerable
     }
 
     // enumerable interface
-    function totalChildContracts(uint256 _tokenId) external override view returns (uint256) {
-        return 0;
+    function totalChildContracts() external override view returns (uint256) {
+        return childContracts.length();
     }
 
-    function childContractByIndex(uint256 _tokenId, uint256 _index) external override view returns (address childContract) {
-        return address(0);
+    function childContractByIndex(uint256 _index) external override view returns (address childContract) {
+        return childContracts.at(_index);
     }
 
     function totalChildTokens(uint256 _tokenId, address _childContract) external override view returns (uint256) {
-        return 0;
+        return parentTokenIDToChildrenOwned[_tokenId][_childContract].length();
     }
 
     function childTokenByIndex(uint256 _tokenId, address _childContract, uint256 _index) external override view returns (uint256 childTokenId) {
-        return 0;
+        return parentTokenIDToChildrenOwned[_tokenId][_childContract].at(_index);
     }
 
     // ----------
