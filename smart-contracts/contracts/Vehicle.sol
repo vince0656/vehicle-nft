@@ -7,6 +7,7 @@ import "@openzeppelin/contracts/utils/EnumerableSet.sol";
 import "./ERC998/IERC998ERC721TopDown.sol";
 import "./ERC998/IERC998ERC721TopDownEnumerable.sol";
 
+// todo; natspec
 contract Vehicle is ERC721, IERC998ERC721TopDown, IERC998ERC721TopDownEnumerable {
     using EnumerableSet for EnumerableSet.UintSet;
     using EnumerableSet for EnumerableSet.AddressSet;
@@ -71,7 +72,7 @@ contract Vehicle is ERC721, IERC998ERC721TopDown, IERC998ERC721TopDownEnumerable
             tokenId = tokenId >> 256 - _data.length * 8;
         }
 
-        receiveChild(_from, tokenId, msg.sender, _childTokenId);
+        _receiveChild(_from, tokenId, msg.sender, _childTokenId);
         require(ERC721(msg.sender).ownerOf(_childTokenId) == address(this), "Child token not owned.");
 
         return _ERC721_RECEIVED;
@@ -80,7 +81,7 @@ contract Vehicle is ERC721, IERC998ERC721TopDown, IERC998ERC721TopDownEnumerable
     // getChild function enables older contracts like cryptokitties to be transferred into a composable
     // The _childContract must approve this contract. Then getChild can be called.
     function getChild(address _from, uint256 _tokenId, address _childContract, uint256 _childTokenId) external override {
-
+        //TODO
     }
 
     // enumerable interface
@@ -104,7 +105,7 @@ contract Vehicle is ERC721, IERC998ERC721TopDown, IERC998ERC721TopDownEnumerable
     // Private
     // ----------
 
-    function receiveChild(address _from, uint256 _tokenId, address _childContract, uint256 _childTokenId) private {
+    function _receiveChild(address _from, uint256 _tokenId, address _childContract, uint256 _childTokenId) private {
         require(ownerOf(_tokenId) != address(0));
         require(
             !parentTokenIDToChildrenOwned[_tokenId][_childContract].contains(_childTokenId),
