@@ -10,10 +10,6 @@ interface IERC998ERC721TopDown {
     function rootOwnerOfChild(address _childContract, uint256 _childTokenId) external view returns (address rootOwner);
     function ownerOfChild(address _childContract, uint256 _childTokenId) external view returns (address parentTokenOwner, uint256 parentTokenId);
     function onERC721Received(address _operator, address _from, uint256 _childTokenId, bytes calldata _data) external returns (bytes4);
-    function transferChild(uint256 _fromTokenId, address _to, address _childContract, uint256 _childTokenId) external;
-    function safeTransferChild(uint256 _fromTokenId, address _to, address _childContract, uint256 _childTokenId) external;
-    function safeTransferChild(uint256 _fromTokenId, address _to, address _childContract, uint256 _childTokenId, bytes calldata _data) external;
-    function transferChildToParent(uint256 _fromTokenId, address _toContract, uint256 _toTokenId, address _childContract, uint256 _childTokenId, bytes calldata _data) external;
 
     // getChild function enables older contracts like cryptokitties to be transferred into a composable
     // The _childContract must approve this contract. Then getChild can be called.

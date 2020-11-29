@@ -77,22 +77,6 @@ contract Vehicle is ERC721, IERC998ERC721TopDown, IERC998ERC721TopDownEnumerable
         return _ERC721_RECEIVED;
     }
 
-    function transferChild(uint256 _fromTokenId, address _to, address _childContract, uint256 _childTokenId) external override {
-
-    }
-
-    function safeTransferChild(uint256 _fromTokenId, address _to, address _childContract, uint256 _childTokenId) external override {
-
-    }
-
-    function safeTransferChild(uint256 _fromTokenId, address _to, address _childContract, uint256 _childTokenId, bytes calldata _data) external override {
-
-    }
-
-    function transferChildToParent(uint256 _fromTokenId, address _toContract, uint256 _toTokenId, address _childContract, uint256 _childTokenId, bytes calldata _data) external override {
-
-    }
-
     // getChild function enables older contracts like cryptokitties to be transferred into a composable
     // The _childContract must approve this contract. Then getChild can be called.
     function getChild(address _from, uint256 _tokenId, address _childContract, uint256 _childTokenId) external override {
