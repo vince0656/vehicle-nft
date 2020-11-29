@@ -3,29 +3,38 @@
 pragma solidity 0.7.5;
 
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
+import "@openzeppelin/contracts/utils/EnumerableSet.sol";
 import "./ERC998/IERC998ERC721TopDown.sol";
 import "./ERC998/IERC998ERC721TopDownEnumerable.sol";
 
 contract Vehicle is ERC721, IERC998ERC721TopDown, IERC998ERC721TopDownEnumerable {
+    using EnumerableSet for EnumerableSet.UintSet;
+
     // return this.rootOwnerOf.selector ^ this.rootOwnerOfChild.selector ^
     //   this.tokenOwnerOf.selector ^ this.ownerOfChild.selector;
-    bytes32 constant ERC998_MAGIC_VALUE = 0xcd740db5;
+    //TODO: this was bytes32.
+    bytes4 constant ERC998_MAGIC_VALUE = 0xcd740db5;
 
-    // child address => childId => tokenId
-    mapping(address => mapping(uint256 => uint256)) internal childTokenOwner;
+    // Set of whitelisted child contracts
+    EnumerableSet.AddressSet internal childContracts;
+
+    // Parent token Id => child contract => set of children owned within the child contract
+    mapping(uint256 => mapping(address => EnumerableSet.UintSet)) internal parentTokenIDToChildrenOwned;
+
+    // Child address => childId => parent tokenId
+    mapping(address => mapping(uint256 => uint256)) internal childTokenToParentTokenId;
+
+    mapping(uint256 => string) public tokenIdToVIN;
 
     constructor(string memory _manufacturer, string memory _symbol) ERC721(_manufacturer, _symbol) {}
 
-//    function stringToBytes32(string memory source) public pure returns (bytes32 result) {
-//        bytes memory tempEmptyStringTest = bytes(source);
-//        if (tempEmptyStringTest.length == 0) {
-//            return 0x0;
-//        }
-//
-//        assembly {
-//            result := mload(add(source, 32))
-//        }
-//    }
+    function addressToBytes32(address _account) public pure returns (bytes32 result) {
+        assembly {
+            result := mload(add(_account, 32))
+        }
+    }
+
+    //todo mint needs to take VIN and token uri
 
     function rootOwnerOf(uint256 _tokenId) external override view returns (bytes32 rootOwner) {
         return rootOwnerOfChild(address(0), _tokenId);
@@ -41,11 +50,11 @@ contract Vehicle is ERC721, IERC998ERC721TopDown, IERC998ERC721TopDownEnumerable
 
         (rootOwnerAddress,) = _ownerOfChild(_childContract, _childTokenId);
 
-        // todo, check that the child is whitelisted
+        // todo, check that the child is whitelisted - need an access controls contract
         // todo, check that the child is linked to a parent
 
         // Ownership of a child is implicit from the ownership of a vehicle (NFT)
-        return ERC998_MAGIC_VALUE << 224 | bytes32(rootOwnerAddress);
+        return ERC998_MAGIC_VALUE << 224 | addressToBytes32(rootOwnerAddress);
     }
 
     function ownerOfChild(address _childContract, uint256 _childTokenId) external override view returns (bytes32 parentTokenOwner, uint256 parentTokenId) {
@@ -79,25 +88,30 @@ contract Vehicle is ERC721, IERC998ERC721TopDown, IERC998ERC721TopDownEnumerable
     }
 
     // enumerable interface
-    function totalChildContracts(uint256 _tokenId) external view returns (uint256) {
+    function totalChildContracts(uint256 _tokenId) external override view returns (uint256) {
         return 0;
     }
 
-    function childContractByIndex(uint256 _tokenId, uint256 _index) external view returns (address childContract) {
+    function childContractByIndex(uint256 _tokenId, uint256 _index) external override view returns (address childContract) {
         return address(0);
     }
 
-    function totalChildTokens(uint256 _tokenId, address _childContract) external view returns (uint256) {
+    function totalChildTokens(uint256 _tokenId, address _childContract) external override view returns (uint256) {
         return 0;
     }
 
-    function childTokenByIndex(uint256 _tokenId, address _childContract, uint256 _index) external view returns (uint256 childTokenId) {
+    function childTokenByIndex(uint256 _tokenId, address _childContract, uint256 _index) external override view returns (uint256 childTokenId) {
         return 0;
     }
 
     function _ownerOfChild(address _childContract, uint256 _childTokenId) internal view returns (address parentTokenOwner, uint256 parentTokenId) {
-        parentTokenId = childTokenOwner[_childContract][_childTokenId];
-        require(parentTokenId > 0 || childTokenIndex[parentTokenId][_childContract][_childTokenId] > 0);
-        return (tokenIdToTokenOwner[parentTokenId], parentTokenId);
+        parentTokenId = childTokenToParentTokenId[_childContract][_childTokenId];
+
+        require(
+            parentTokenId > 0 || parentTokenIDToChildrenOwned[parentTokenId][_childContract].contains(_childTokenId),
+            "Vehicle._ownerOfChild: Child does not belong to any parent"
+        );
+
+        return (ownerOf(parentTokenId), parentTokenId);
     }
 }
