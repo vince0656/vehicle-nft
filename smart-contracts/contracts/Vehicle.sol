@@ -4,11 +4,14 @@ pragma solidity 0.7.5;
 
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/utils/EnumerableSet.sol";
+import "@openzeppelin/contracts/math/SafeMath.sol";
 import "./ERC998/IERC998ERC721TopDown.sol";
 import "./ERC998/IERC998ERC721TopDownEnumerable.sol";
+import "./AccessControls.sol";
 
 // todo; natspec
 contract Vehicle is ERC721, IERC998ERC721TopDown, IERC998ERC721TopDownEnumerable {
+    using SafeMath for uint256;
     using EnumerableSet for EnumerableSet.UintSet;
     using EnumerableSet for EnumerableSet.AddressSet;
 
@@ -32,10 +35,24 @@ contract Vehicle is ERC721, IERC998ERC721TopDown, IERC998ERC721TopDownEnumerable
 
     mapping(uint256 => string) public tokenIdToVIN;
 
-    constructor(string memory _manufacturer, string memory _symbol) ERC721(_manufacturer, _symbol) {}
+    AccessControls public accessControls;
 
-    //todo mint needs to take VIN and token uri
-    //todo whitelist child contract using access controls contract
+    constructor(string memory _manufacturer, string memory _symbol, AccessControls _accessControls) ERC721(_manufacturer, _symbol) {
+        accessControls = _accessControls;
+    }
+
+    function whitelistChildContract(address _newChildContractAddress) external {
+        require(accessControls.isAdmin(_msgSender()), "Vehicle.whitelistChildContract: Only admin");
+        childContracts.add(_newChildContractAddress);
+    }
+
+    function mint(string calldata _uri, string calldata _VIN, address _beneficiary) external {
+        require(accessControls.isAdmin(_msgSender()), "Vehicle.whitelistChildContract: Only admin");
+        uint256 tokenId = totalSupply().add(1);
+        _safeMint(_beneficiary, tokenId);
+        _setTokenURI(tokenId, _uri);
+        tokenIdToVIN[tokenId] = _VIN;
+    }
 
     function rootOwnerOf(uint256 _tokenId) external override view returns (address rootOwner) {
         return rootOwnerOfChild(address(0), _tokenId);
@@ -116,12 +133,6 @@ contract Vehicle is ERC721, IERC998ERC721TopDown, IERC998ERC721TopDownEnumerable
         childTokenToParentTokenId[_childContract][_childTokenId] = _tokenId;
 
         emit ReceivedChild(_from, _tokenId, _childContract, _childTokenId);
-    }
-
-    function addressToBytes32(address _account) private pure returns (bytes32 result) {
-        assembly {
-            result := mload(add(_account, 32))
-        }
     }
 
     function _ownerOfChild(address _childContract, uint256 _childTokenId) internal view returns (address parentTokenOwner, uint256 parentTokenId) {

@@ -10,8 +10,8 @@ contract AccessControls is AccessControl {
         _setupRole(DEFAULT_ADMIN_ROLE, _msgSender());
     }
 
-    function isAdmin() external view returns (bool) {
-        return hasRole(DEFAULT_ADMIN_ROLE, _msgSender());
+    function isAdmin(address _account) external view returns (bool) {
+        return hasRole(DEFAULT_ADMIN_ROLE, _account);
     }
 
     function grantAdminTo(address _recipient) external {
