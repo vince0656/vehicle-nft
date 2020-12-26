@@ -48,6 +48,9 @@ contract Vehicle is ERC721, IERC998ERC721TopDown, IERC998ERC721TopDownEnumerable
 
     function mint(string calldata _uri, string calldata _VIN, address _beneficiary) external {
         require(accessControls.isAdmin(_msgSender()), "Vehicle.mint: Only admin");
+        require(_beneficiary != address(0), "Vehicle.mint: Invalid mint beneficiary");
+        require(_beneficiary != address(this), "Vehicle.mint: Cannot mint to this contract");
+        require(!childContracts.contains(_beneficiary), "Vehicle.mint: Cannot mint to a child contract");
         uint256 tokenId = totalSupply().add(1);
         _safeMint(_beneficiary, tokenId);
         _setTokenURI(tokenId, _uri);
