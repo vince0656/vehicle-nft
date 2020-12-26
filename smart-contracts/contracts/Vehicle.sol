@@ -24,7 +24,7 @@ contract Vehicle is ERC721, IERC998ERC721TopDown, IERC998ERC721TopDownEnumerable
     // which can be also obtained as `IERC721Receiver(0).onERC721Received.selector`
     bytes4 private constant _ERC721_RECEIVED = 0x150b7a02;
 
-    // Set of whitelisted child contracts
+    // Set of whitelisted child contracts i.e. ServiceHistory, MOTs, Owners
     EnumerableSet.AddressSet internal childContracts;
 
     // Parent token Id => child contract => set of children owned within the child contract
@@ -47,7 +47,7 @@ contract Vehicle is ERC721, IERC998ERC721TopDown, IERC998ERC721TopDownEnumerable
     }
 
     function mint(string calldata _uri, string calldata _VIN, address _beneficiary) external {
-        require(accessControls.isAdmin(_msgSender()), "Vehicle.whitelistChildContract: Only admin");
+        require(accessControls.isAdmin(_msgSender()), "Vehicle.mint: Only admin");
         uint256 tokenId = totalSupply().add(1);
         _safeMint(_beneficiary, tokenId);
         _setTokenURI(tokenId, _uri);
@@ -59,15 +59,13 @@ contract Vehicle is ERC721, IERC998ERC721TopDown, IERC998ERC721TopDownEnumerable
     }
 
     function rootOwnerOfChild(address _childContract, uint256 _childTokenId) public override view returns (address rootOwner) {
-        address rootOwnerAddress;
-
         // When zero passed in, the query is about who owns the Vehicle token ID specified by [_childTokenId] param
         if (_childContract == address(0)) {
-            rootOwnerAddress = ownerOf(_childTokenId);
+            return ownerOf(_childTokenId);
         }
 
         require(childContracts.contains(_childContract), "Invalid child contract address");
-        (rootOwnerAddress,) = _ownerOfChild(_childContract, _childTokenId);
+        (address rootOwnerAddress,) = _ownerOfChild(_childContract, _childTokenId);
 
         // Ownership of a child is implicit from the ownership of a vehicle (NFT)
         return rootOwnerAddress;
