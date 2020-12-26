@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity 0.7.5;
+pragma solidity 0.7.6;
 
 interface IERC998ERC721TopDownEnumerable {
     function totalChildContracts() external view returns (uint256);
