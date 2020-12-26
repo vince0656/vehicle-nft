@@ -33,6 +33,7 @@ contract Vehicle is ERC721, IERC998ERC721TopDown, IERC998ERC721TopDownEnumerable
     // Child address => childId => parent tokenId
     mapping(address => mapping(uint256 => uint256)) internal childTokenToParentTokenId;
 
+    // VIN == Vehicle identification number
     mapping(uint256 => string) public tokenIdToVIN;
 
     AccessControls public accessControls;
@@ -51,7 +52,11 @@ contract Vehicle is ERC721, IERC998ERC721TopDown, IERC998ERC721TopDownEnumerable
         require(_beneficiary != address(0), "Vehicle.mint: Invalid mint beneficiary");
         require(_beneficiary != address(this), "Vehicle.mint: Cannot mint to this contract");
         require(!childContracts.contains(_beneficiary), "Vehicle.mint: Cannot mint to a child contract");
+        require(bytes(_uri).length > 0, "Vehicle.mint: URI is empty string");
+        require(bytes(_VIN).length > 0, "Vehicle.mint: URI is empty string");
+
         uint256 tokenId = totalSupply().add(1);
+
         _safeMint(_beneficiary, tokenId);
         _setTokenURI(tokenId, _uri);
         tokenIdToVIN[tokenId] = _VIN;
