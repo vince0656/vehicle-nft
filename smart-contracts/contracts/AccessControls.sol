@@ -6,6 +6,8 @@ import "@openzeppelin/contracts/access/AccessControl.sol";
 
 // todo; natspec
 contract AccessControls is AccessControl {
+    bytes32 public constant GARAGE_ROLE = bytes32("GARAGE_ROLE");
+
     constructor() {
         _setupRole(DEFAULT_ADMIN_ROLE, _msgSender());
     }
@@ -14,7 +16,15 @@ contract AccessControls is AccessControl {
         return hasRole(DEFAULT_ADMIN_ROLE, _account);
     }
 
-    function grantAdminTo(address _recipient) external {
+    function isGarage(address _account) external view returns (bool) {
+        return hasRole(GARAGE_ROLE, _account);
+    }
+
+    function grantAdminRoleTo(address _recipient) external {
         grantRole(DEFAULT_ADMIN_ROLE, _recipient);
+    }
+
+    function grantGarageRoleTo(address _recipient) external {
+        grantRole(GARAGE_ROLE, _recipient);
     }
 }

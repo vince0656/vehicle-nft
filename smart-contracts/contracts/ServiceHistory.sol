@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 
 pragma solidity 0.7.6;
+pragma abicoder v2;
 
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/math/SafeMath.sol";
@@ -12,7 +13,7 @@ contract ServiceHistory is ERC721("ServiceHistory", "SRV") {
     struct Entry {
         uint256 mileage;
         uint256 date;
-        string garage;
+        address garage;
         string description;
     }
 
@@ -28,15 +29,26 @@ contract ServiceHistory is ERC721("ServiceHistory", "SRV") {
     function mint(
         address _vehicleNftAddress,
         uint256 _vehicleNftId,
-        string calldata _uri
+        string calldata _uri,
+        uint256 _mileage,
+        string calldata _description
     ) external {
-        require(accessControls.isAdmin(_msgSender()), "ServiceHistory.mint: Only admin");
+        require(accessControls.isGarage(_msgSender()), "ServiceHistory.mint: Only authorised garage");
 
         uint256 tokenId = totalSupply().add(1);
 
-        //TODO entry
+        serviceBookEntry[tokenId] = Entry({
+            mileage: _mileage,
+            date: block.timestamp,
+            garage: _msgSender(),
+            description: _description
+        });
 
         _safeMint(_vehicleNftAddress, tokenId, abi.encodePacked(_vehicleNftId));
         _setTokenURI(tokenId, _uri);
+    }
+
+    function getEntry(uint256 _tokenId) external view returns (Entry memory) {
+        return serviceBookEntry[_tokenId];
     }
 }
