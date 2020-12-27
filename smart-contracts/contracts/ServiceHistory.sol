@@ -16,21 +16,27 @@ contract ServiceHistory is ERC721("ServiceHistory", "SRV") {
         string description;
     }
 
+    /// @notice ServiceHistory token ID -> Entry info
     mapping(uint256 => Entry) public serviceBookEntry;
 
-    address public vehicleNftAddress;
     AccessControls public accessControls;
 
-    constructor(AccessControls _accessControls, address _vehicleNftAddress) {
+    constructor(AccessControls _accessControls) {
         accessControls = _accessControls;
-        vehicleNftAddress = _vehicleNftAddress;
     }
 
-    function mint(uint256 _vehicleNftId) external {
+    function mint(
+        address _vehicleNftAddress,
+        uint256 _vehicleNftId,
+        string calldata _uri
+    ) external {
         require(accessControls.isAdmin(_msgSender()), "ServiceHistory.mint: Only admin");
 
         uint256 tokenId = totalSupply().add(1);
 
-        _safeMint(vehicleNftAddress, tokenId, abi.encodePacked(_vehicleNftId));
+        //TODO entry
+
+        _safeMint(_vehicleNftAddress, tokenId, abi.encodePacked(_vehicleNftId));
+        _setTokenURI(tokenId, _uri);
     }
 }
