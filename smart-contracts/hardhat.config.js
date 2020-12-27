@@ -1,5 +1,6 @@
 require('dotenv').config();
 require("@nomiclabs/hardhat-waffle");
+require("@nomiclabs/hardhat-truffle5");
 require('solidity-coverage');
 
 const INFURA_PROJECT_ID = process.env.INFURA_PROJECT_ID;
