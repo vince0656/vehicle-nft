@@ -4,7 +4,7 @@
   "description": "Top down composable tokenised vehicle",
   "scripts": {
     "compile": "npx hardhat compile",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "npx hardhat test"
   },
   "author": "Vincent Almeida (Decentralised Engineering Ltd)",
   "license": "MIT",

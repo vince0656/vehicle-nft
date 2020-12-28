@@ -85,18 +85,14 @@ contract Vehicle is ERC721, IERC998ERC721TopDown, IERC998ERC721TopDownEnumerable
     }
 
     function onERC721Received(address, address _from, uint256 _childTokenId, bytes calldata _data) external override returns (bytes4) {
-        require(childContracts.contains(msg.sender), "Child contract is not whitelisted");
-        require(_data.length > 0, "_data must contain the uint256 tokenId to transfer the child token to.");
+        require(childContracts.contains(_msgSender()), "Vehicle.onERC721Received: Child contract is not whitelisted");
+        require(_data.length == 32, "Vehicle.onERC721Received: _data must contain the uint256 tokenId to transfer the child token to.");
 
-        // convert up to 32 bytes of_data to uint256, owner nft tokenId passed as uint in bytes
         uint256 tokenId;
-        assembly {tokenId := calldataload(132)}
+        uint256 _index = msg.data.length - 32;
+        assembly {tokenId := calldataload(_index)}
 
-        if (_data.length < 32) {
-            tokenId = tokenId >> 256 - _data.length * 8;
-        }
-
-        _receiveChild(_from, tokenId, msg.sender, _childTokenId);
+        _receiveChild(_from, tokenId, _msgSender(), _childTokenId);
         require(ERC721(msg.sender).ownerOf(_childTokenId) == address(this), "Child token not owned.");
 
         return _ERC721_RECEIVED;
