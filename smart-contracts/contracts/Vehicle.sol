@@ -10,33 +10,32 @@ import "./ERC998/IERC998ERC721TopDown.sol";
 import "./ERC998/IERC998ERC721TopDownEnumerable.sol";
 import "./AccessControls.sol";
 
-// todo; natspec
+/// @title ERC721 and ERC998 Compatible contract for tokenizing a vehicle
+/// @author Vincent de Almeida
+/// @notice Last Updated 2 Jan 2021
+/// @dev Permission to call certain methods is controlled by an external access controls contract
+/// @dev This contract only supports wrapping other ERC721 tokens (if the NFT is whitelisted)
 contract Vehicle is ERC721, IERC998ERC721TopDown, IERC998ERC721TopDownEnumerable {
     using SafeMath for uint256;
     using EnumerableSet for EnumerableSet.UintSet;
     using EnumerableSet for EnumerableSet.AddressSet;
 
-    // return this.rootOwnerOf.selector ^ this.rootOwnerOfChild.selector ^
-    //   this.tokenOwnerOf.selector ^ this.ownerOfChild.selector;
-    //TODO: this was bytes32.
-    bytes4 constant ERC998_MAGIC_VALUE = 0xcd740db5;
-
-    // Equals to `bytes4(keccak256("onERC721Received(address,address,uint256,bytes)"))`
-    // which can be also obtained as `IERC721Receiver(0).onERC721Received.selector`
+    // Equals `bytes4(keccak256("onERC721Received(address,address,uint256,bytes)"))`
     bytes4 private constant _ERC721_RECEIVED = 0x150b7a02;
 
     // Set of whitelisted child contracts i.e. ServiceHistory, MOTs, Owners
     EnumerableSet.AddressSet internal childContracts;
 
-    // Parent token Id => child contract => set of children owned within the child contract
+    // Vehicle token ID => child contract => set of children owned within the child contract
     mapping(uint256 => mapping(address => EnumerableSet.UintSet)) internal parentTokenIDToChildrenOwned;
 
-    // Child address => childId => parent tokenId
+    // Child contract address => child token ID => Vehicle token ID
     mapping(address => mapping(uint256 => uint256)) internal childTokenToParentTokenId;
 
-    // VIN == Vehicle identification number
+    /// @notice Function for retrieving a vehicle identification number from a token ID
     mapping(uint256 => string) public tokenIdToVIN;
 
+    /// @notice Address of the access controls contract
     AccessControls public accessControls;
 
     constructor(string memory _manufacturer, string memory _symbol, AccessControls _accessControls) ERC721(_manufacturer, _symbol) {
