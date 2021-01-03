@@ -7,9 +7,13 @@ import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/math/SafeMath.sol";
 import "./AccessControls.sol";
 
+/// @title ERC721 NFT contract for tokenizing Servicing events and wrapping that in a vehicle
+/// @author Vincent de Almeida
+/// @notice Last Updated 2 Jan 2021
 contract ServiceHistory is ERC721("ServiceHistory", "SRV") {
     using SafeMath for uint256;
 
+    // Service book entry data
     struct Entry {
         uint256 mileage;
         uint256 date;
@@ -20,12 +24,20 @@ contract ServiceHistory is ERC721("ServiceHistory", "SRV") {
     /// @notice ServiceHistory token ID -> Entry info
     mapping(uint256 => Entry) public serviceBookEntry;
 
+    /// @notice Address of the access control contract
     AccessControls public accessControls;
 
+    /// @param _accessControls Address of the access control contract
     constructor(AccessControls _accessControls) {
         accessControls = _accessControls;
     }
-
+    /// @notice Method for tokenizing a service book entry and instantly wrapping within a vehicle NFT
+    /// @dev Only an address with the garage role (authorised service partner) can invoke this method
+    /// @param _vehicleNftAddress Address of the vehicle NFT contract
+    /// @param _vehicleNftId Vehicle token ID receiving the ServiceHistory NFT
+    /// @param _uri Token URI for any additional token metadata
+    /// @param _mileage of the vehicle at the time of the service
+    /// @param _description Details if any about the service
     function mint(
         address _vehicleNftAddress,
         uint256 _vehicleNftId,
@@ -48,7 +60,10 @@ contract ServiceHistory is ERC721("ServiceHistory", "SRV") {
         _setTokenURI(tokenId, _uri);
     }
 
-    function getEntry(uint256 _tokenId) external view returns (Entry memory) {
+    /// @notice Get service book entry for a given token ID
+    /// @param _tokenId of the ServiceHistory token
+    /// @return Entry struct data
+    function getServiceBookEntryForTokenId(uint256 _tokenId) external view returns (Entry memory) {
         return serviceBookEntry[_tokenId];
     }
 }
