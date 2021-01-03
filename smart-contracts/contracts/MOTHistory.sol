@@ -7,9 +7,13 @@ import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/math/SafeMath.sol";
 import "./AccessControls.sol";
 
+/// @title ERC721 NFT contract for tokenizing MOT events and wrapping that in a vehicle
+/// @author Vincent de Almeida
+/// @notice Last Updated 2 Jan 2021
 contract MOTHistory is ERC721("MOTHistory", "MOT") {
     using SafeMath for uint256;
 
+    // Core MOT data
     struct MOT {
         uint256 mileage;
         uint256 date;
@@ -19,14 +23,24 @@ contract MOTHistory is ERC721("MOTHistory", "MOT") {
     }
 
     /// @notice MOTHistory token ID -> MOT info
-    mapping(uint256 => MOT) public motEntry;
+    mapping(uint256 => MOT) public mot;
 
+    /// @notice Address of the access control contract
     AccessControls public accessControls;
 
+    /// @param _accessControls Address of the access control contract
     constructor(AccessControls _accessControls) {
         accessControls = _accessControls;
     }
 
+    /// @notice Method for tokenizing an MOT and instantly wrapping within a vehicle NFT
+    /// @dev Only an address with the garage role (authorised service partner) can invoke this method
+    /// @param _vehicleNftAddress Address of the vehicle NFT contract
+    /// @param _vehicleNftId Vehicle token ID receiving the MOT NFT
+    /// @param _uri Token URI for any additional token metadata
+    /// @param _mileage of the vehicle at the time of MOT
+    /// @param _pass whether the MOT passed or failed
+    /// @param _advisories Information on advisories if any
     function mint(
         address _vehicleNftAddress,
         uint256 _vehicleNftId,
@@ -39,7 +53,7 @@ contract MOTHistory is ERC721("MOTHistory", "MOT") {
 
         uint256 tokenId = totalSupply().add(1);
 
-        motEntry[tokenId] = MOT({
+        mot[tokenId] = MOT({
             mileage: _mileage,
             date: block.timestamp,
             garage: _msgSender(),
@@ -51,7 +65,10 @@ contract MOTHistory is ERC721("MOTHistory", "MOT") {
         _setTokenURI(tokenId, _uri);
     }
 
-    function getEntry(uint256 _tokenId) external view returns (MOT memory) {
-        return motEntry[_tokenId];
+    /// @notice Query for MOT information from a token ID
+    /// @param _tokenId of the MOT token
+    /// @return MOT struct data
+    function getMOTByTokenId(uint256 _tokenId) external view returns (MOT memory) {
+        return mot[_tokenId];
     }
 }
