@@ -17,7 +17,15 @@ contract('General tests', function ([admin, garage, vehicleOwner, ...otherAccoun
     this.accessControls = await AccessControls.new({from: admin});
     this.accessControls.grantGarageRoleTo(garage, {from: admin});
 
-    this.vehicle = await Vehicle.new("Tesla", "Model S", this.accessControls.address, {from: admin});
+    this.vehicle = await Vehicle.new(
+      "Tesla",
+      "Model S",
+      "TESLA",
+      "MODELS",
+      this.accessControls.address,
+      {from: admin}
+    );
+
     this.motHistory = await MOTHistory.new(this.accessControls.address, {from: admin});
 
     // Whitelist NFT contracts allowed to be children of vehicle
