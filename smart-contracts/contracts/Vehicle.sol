@@ -10,7 +10,7 @@ import "./ERC998/IERC998ERC721TopDown.sol";
 import "./ERC998/IERC998ERC721TopDownEnumerable.sol";
 import "./AccessControls.sol";
 
-/// @title ERC721 and ERC998 Compatible contract for tokenizing a vehicle
+/// @title ERC721 and ERC998 Compatible contract for tokenizing a vehicle based on a specific make and model
 /// @author Vincent de Almeida
 /// @notice Last Updated 2 Jan 2021
 /// @dev Permission to call certain methods is controlled by an external access controls contract
@@ -38,7 +38,26 @@ contract Vehicle is ERC721, IERC998ERC721TopDown, IERC998ERC721TopDownEnumerable
     /// @notice Address of the access controls contract
     AccessControls public accessControls;
 
-    constructor(string memory _manufacturer, string memory _symbol, AccessControls _accessControls) ERC721(_manufacturer, _symbol) {
+    /// @notice Vehicle manufacturer
+    string public manufacturer;
+
+    /// @notice Vehicle model
+    string public model;
+
+    /// @param _manufacturer Vehicle Manufacturer
+    /// @param _model Vehicle model
+    /// @param _tokenName ERC721 name
+    /// @param _tokenSymbol ERC721 symbol
+    /// @param _accessControls Address of the access control contract
+    constructor(
+        string memory _manufacturer,
+        string memory _model,
+        string memory _tokenName,
+        string memory _tokenSymbol,
+        AccessControls _accessControls
+    ) ERC721(_tokenName, _tokenSymbol) {
+        manufacturer = _manufacturer;
+        model = _model;
         accessControls = _accessControls;
     }
 
