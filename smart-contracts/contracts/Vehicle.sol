@@ -40,6 +40,9 @@ contract Vehicle is ERC721, IERC998ERC721TopDown, IERC998ERC721TopDownEnumerable
     /// @notice Function for retrieving a vehicle identification number from a token ID
     mapping(uint256 => string) public tokenIdToVIN;
 
+    /// @notice Function for retrieving a token ID from a vehicle identification number
+    mapping(string => uint256) public vinToTokenId;
+
     /// @notice Address of the access controls contract
     AccessControls public accessControls;
 
@@ -94,6 +97,7 @@ contract Vehicle is ERC721, IERC998ERC721TopDown, IERC998ERC721TopDownEnumerable
         _safeMint(_recipient, tokenId);
         _setTokenURI(tokenId, _uri);
         tokenIdToVIN[tokenId] = _VIN;
+        vinToTokenId[_VIN] = tokenId;
     }
 
     /// @notice Retrieves the owner of a vehicle NFT
